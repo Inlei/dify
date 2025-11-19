@@ -26,7 +26,7 @@ from typing import Literal, Dict, List, Any, IO
 import aiofiles
 import httpx
 
-#[测试]带故障注入机制
+#带故障注入机制
 import random
 import httpx
 
