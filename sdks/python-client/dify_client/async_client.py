@@ -26,6 +26,55 @@ from typing import Literal, Dict, List, Any, IO
 import aiofiles
 import httpx
 
+#[测试]带故障注入机制
+import random
+import httpx
+
+class AsyncDifyClient:
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://api.dify.ai/v1",
+        timeout: float = 60.0,
+        fault_injection: bool = False,
+        fault_rate: float = 0.1,
+    ):
+        self.api_key = api_key
+        self.base_url = base_url
+        self.fault_injection = fault_injection
+        self.fault_rate = fault_rate
+        self._client = httpx.AsyncClient(
+            base_url=base_url,
+            timeout=httpx.Timeout(timeout, connect=5.0),
+        )
+
+    async def _send_request(
+        self,
+        method: str,
+        endpoint: str,
+        json: dict | None = None,
+        params: dict | None = None,
+        stream: bool = False,
+        **kwargs,
+    ):
+        # 故障注入：随机抛异常
+        if self.fault_injection and random.random() < self.fault_rate:
+            raise httpx.HTTPError("Injected fault for testing")
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        response = await self._client.request(
+            method,
+            endpoint,
+            json=json,
+            params=params,
+            headers=headers,
+            **kwargs,
+        )
+        return response
 
 class AsyncDifyClient:
     """Asynchronous Dify API client.
